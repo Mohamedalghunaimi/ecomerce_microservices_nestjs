@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+
+  api-gateway:
+    build: ./api-getway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user-service
+      - auth-service
+    env_file:
+      - ./api-getway/.env
+    restart: always
+    networks:
+      - micro-net
+
+  user-service:
+    build: ./user
+    env_file:
+      - ./user/.env
+    restart: always
+    networks:
+      - micro-net
+
+  auth-service:
+    build: ./auth
+    env_file:
+      - ./auth/.env
+    restart: always
+    networks:
+      - micro-net
+
+networks:
+  micro-net:

@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+
+  api-gateway:
+    build:
+      context: ./api-getway
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - user-service
+    env_file:
+      - ./api-getway/.env
+    volumes:
+      - ./api-getway:/app
+    command: npm run start:dev
+    networks:
+      - micro-net
+
+  user-service:
+    build:
+      context: ./user
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3002:3000"
+    env_file:
+      - ./user/.env
+    volumes:
+      - ./user:/app
+      - /app/node_modules
+    command: npm run start:dev
+    networks:
+      - micro-net
+
+
+
+  auth-service:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./auth/.env
+    volumes:
+      - ./auth:/app
+      - /app/node_modules
+    command: npm run start:dev
+    networks:
+      - micro-net
+
+networks:
+  micro-net:

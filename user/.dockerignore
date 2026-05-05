@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build output
+dist
+build
+
+# Prisma
+# بنسيب ملف الـ schema.prisma بس بنمسح الـ generated client
+# لأننا هنعمله generate جوه الدوكر عشان يتوافق مع بيئة اللينكس
+node_modules/.prisma
+
+# Environment variables
+# مهم جداً متنسخش ملف الـ .env الحقيقي لجوه الـ Image
+# إحنا بنخليه يقرأه من بره في الـ docker-compose
+.env
+.env.*
+!.env.example
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test
+cov
+*.spec.ts
