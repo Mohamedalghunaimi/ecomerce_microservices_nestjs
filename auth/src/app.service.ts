@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/require-await */
-import {  Inject, Injectable,  } from '@nestjs/common';
+import {  Inject, Injectable,   } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { LoginData, RegisterData } from '../utils/interfaces';
 import { UserPayload } from '../utils/types';
-import { RpcException } from '@nestjs/microservices/exceptions/rpc-exception';
+import { RpcException } from '@nestjs/microservices';
 import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
@@ -24,6 +24,11 @@ export class AppService {
       const user = await this.prisma.user.findUnique({
         where: {
           email
+        },
+        select: {
+          id: true,
+          password: true,
+          role: true
         }
       });
       if (!user) {

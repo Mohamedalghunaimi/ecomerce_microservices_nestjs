@@ -1,24 +1,26 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
-
-import { ArgumentsHost, Catch, ExceptionFilter, } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
+import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Response } from 'express';
 
-@Catch(RpcException)
+@Catch()
 export class RpcToHttpFilter implements ExceptionFilter {
-  catch(exception: RpcException, host: ArgumentsHost) {
+  catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    
-    const error = exception.getError() as { status: number; message: string };
-    
-    const status = error.status || 500;
-    const message = error.message || 'Internal server error';
 
-    response.status(status).json({
-        statusCode: status,
-        message: message,
-        timestamp: new Date().toISOString(),
+    console.log('Exception => ', exception);
+
+    const error = exception?.response || exception;
+
+    const status = error?.status || 500;
+    const message = error?.message || 'Internal server error';
+
+    response.status(status as number).json({
+      statusCode: status,
+      message,
+      timestamp: new Date().toISOString(),
     });
   }
 }
