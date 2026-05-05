@@ -3,19 +3,27 @@
 /* eslint-disable prettier/prettier */
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Response } from 'express';
+import { RpcException } from '@nestjs/microservices';
 
 @Catch()
 export class RpcToHttpFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-
+    if (exception?.status) {
+      return response.status(exception.status as number).json({
+        statusCode: exception.status,
+        message: exception.message,
+      });
+    }
     console.log('Exception => ', exception);
 
     const error = exception?.response || exception;
 
     const status = error?.status || 500;
     const message = error?.message || 'Internal server error';
+
+    
 
     response.status(status as number).json({
       statusCode: status,
