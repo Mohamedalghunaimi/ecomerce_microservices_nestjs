@@ -40,4 +40,8 @@ constructor(
 
   }
 
+  uploadImage(file:string,productId:string) {
+    return this.productClient.send("upload_img",{ file ,productId})
+  }
+
 }

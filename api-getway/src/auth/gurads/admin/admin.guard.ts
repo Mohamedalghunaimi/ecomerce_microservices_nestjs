@@ -12,10 +12,12 @@ export class AdminGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
 
-    const isPublic = this.reflector.getAllAndOverride('is-public', [
+    const isPublic = this.reflector.getAllAndOverride('is-public', 
+      [
         context.getHandler(),
         context.getClass(),
-    ]);
+      ]
+    );
     if (isPublic) return true;
     const request = context.switchToHttp().getRequest<Request & { user: { role: 'ADMIN' | 'USER' } }>();
     const user = request.user;

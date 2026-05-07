@@ -24,7 +24,9 @@ model Category {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  products    Product[] 
+  products    Product[]
+
+  @@index([slug]) 
 }
 model Product {
   id          String   @id @default(uuid())
@@ -48,7 +50,8 @@ model Product {
   images      ProductImage[]
 
   category    Category @relation(fields: [categoryId], references: [id])
-  @@index([categoryId])
+  @@index([categoryId,slug])
+
 }
 
 model ProductImage {

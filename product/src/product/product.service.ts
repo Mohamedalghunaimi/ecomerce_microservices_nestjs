@@ -6,14 +6,15 @@
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { Product } from '@prisma/client';
-import { threadCpuUsage } from 'process';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductData } from 'utils/interfaces';
 
 @Injectable()
 export class ProductService {
     constructor(
-        private readonly prisma:PrismaService
+        private readonly prisma:PrismaService,
+        private readonly cloudinaryService:CloudinaryService
     ) {}
 
     public async create(data:ProductData) : Promise<Product> {
@@ -169,6 +170,37 @@ export class ProductService {
         })
 
         return updatedProduct
+
+    }
+
+    async upload(
+        file:string,
+        productId:string
+    ) {
+        const result = await this.cloudinaryService.uploadImage(
+            file,
+            productId
+        )
+        const existingProduct = await this.prisma.product.findUnique({
+            where:{id:productId}
+        })
+        if(!existingProduct) {
+            throw new RpcException({
+                status:404,
+                message:"product not found"
+            })
+        }
+        const newProductImage = await this.prisma.productImage.create({
+            data:{
+                url:result,
+                productId
+            }
+        })
+
+        return newProductImage
+
+
+
 
     }
 

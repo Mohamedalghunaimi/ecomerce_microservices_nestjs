@@ -43,4 +43,11 @@ export class ProductController {
     return this.productService.reActive(id);
 
   }
+
+  @MessagePattern('upload_img')
+  upload(
+    {file,productId}:{file:string,productId:string}
+  ) {
+    return this.productService.upload(file,productId)
+  }
 }

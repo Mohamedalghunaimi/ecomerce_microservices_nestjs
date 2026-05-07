@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtGuard } from 'src/auth/gurads/jwt/jwt.guard';
 import { AdminGuard } from 'src/auth/gurads/admin/admin.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('products')
 export class ProductController {
@@ -52,4 +54,18 @@ export class ProductController {
     return this.productService.reActive(id)
 
   }
+
+  @UseGuards(JwtGuard, AdminGuard)
+  @UseInterceptors(FileInterceptor('image'))
+  @Post(":productId/image")
+  public uploadProductImage(
+    @Body("productId",new ParseUUIDPipe()) productId:string,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.productService.uploadImage(file.path,productId)
+
+  }
+
+
+
 }
