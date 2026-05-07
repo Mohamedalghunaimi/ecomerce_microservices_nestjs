@@ -25,3 +25,11 @@ export interface ProductData {
 
 
 }
+
+export interface CategoryData {
+
+    name: string;
+    slug:string;
+    description?:string;
+
+}

@@ -17,12 +17,12 @@ export class ProductService {
 
     public async create(data:ProductData) : Promise<Product> {
         const { title, description, slug, price, categoryId, brand } = data;
-        const existingCategory = await this.prisma.category.findUnique({
-            where: { id: categoryId },
+        const existingCategory = await this.prisma.category.findFirst({
+            where: { id: categoryId ,isActive: true },
         });
         if (!existingCategory) {
             throw new RpcException({
-                statusCode: 404,
+                status: 404,
                 message: 'Category not found',
             })
         }
@@ -31,7 +31,7 @@ export class ProductService {
         });
         if (existingProduct) {
             throw new RpcException({
-                statusCode: 400,
+                status: 400,
                 message: 'Product with this slug already exists',
             })
         }
@@ -51,18 +51,18 @@ export class ProductService {
 
     public async findAll() : Promise<Product[]> {
         const products: Product[] = await this.prisma.product.findMany({
-            where: { isActive: true },
+            where: { isActive: true , category:{ isActive: true } },
         });
         return products;
     }
 
     public async findOne(id:string) : Promise<Product> {
         const product  = await this.prisma.product.findFirst({
-            where: { id ,isActive: true },
+            where: { id ,isActive: true , category:{ isActive: true } },
         });
         if (!product) {
             throw new RpcException({
-                statusCode: 404,
+                status: 404,
                 message: 'Product not found',
             });
         }
@@ -73,24 +73,24 @@ export class ProductService {
     public async update(id:string, data: Partial<ProductData>) : Promise<Product> {
         const { slug, categoryId } = data;
         if (categoryId) {
-            const existingCategory = await this.prisma.category.findUnique({    
-                where: { id: categoryId },
+            const existingCategory = await this.prisma.category.findFirst({    
+                where: { id: categoryId ,isActive: true },
             });
             if (!existingCategory) {    
 
                 throw new RpcException({
-                    statusCode: 404,
+                    status: 404,
                     message: 'Category not found',
                 });
             }
         }
         if (slug) {
-            const existingProduct = await this.prisma.product.findFirst({  
-                where: { slug ,id },
+            const existingProduct = await this.prisma.product.findUnique({  
+                where: { slug },
             }); 
             if (existingProduct) { 
                 throw new RpcException({
-                    statusCode: 400,
+                    status: 400,
                     message: 'Product with this slug already exists',
                 });
             }       
@@ -100,7 +100,7 @@ export class ProductService {
         });
         if (!existingProduct) {
             throw new RpcException({
-                statusCode: 404,
+                status: 404,
                 message: 'Product not found',
             });
         }
@@ -114,11 +114,11 @@ export class ProductService {
     public async delete(id:string) : Promise<{message:string}> {
         const existingProduct = await this.prisma.product.findFirst({
 
-            where: { id ,isActive: true }
+            where: { id ,isActive: true  }
         });
         if (!existingProduct) {
             throw new RpcException({
-                statusCode: 404,
+                status: 404,
                 message: 'Product not found',
             });
         }
@@ -128,18 +128,16 @@ export class ProductService {
         });
         return { message: 'Product deleted successfully' };
     }
-
     public async findByCategory(categoryId:string) : Promise<Product[]> {
-        const existingCategory = await this.prisma.category.findUnique({
-            where: { id: categoryId },
+        const existingCategory = await this.prisma.category.findFirst({
+            where: { id: categoryId ,isActive: true },
         });
         if (!existingCategory) {
             throw new RpcException({
-                statusCode: 404,
+                status: 404,
                 message: 'Category not found',
             });
         }   
-
         const products : Product[] = await this.prisma.product.findMany({
             where: { categoryId, isActive: true },
         });

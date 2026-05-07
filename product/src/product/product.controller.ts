@@ -22,7 +22,9 @@ export class ProductController {
     return this.productService.findOne(data.id);
   }
   @MessagePattern('update_product')
-  update(data: { id: string } & Partial<ProductData>) {
+  update(
+    data: { id: string } & Partial<ProductData>
+  ) {
     const { id, ...updateProductDto } = data;
     return this.productService.update(id, updateProductDto);
   }

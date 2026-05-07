@@ -28,7 +28,6 @@ export class ProductController {
 
   @Patch(':id')
   @UseGuards(JwtGuard, AdminGuard)
-
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(id, updateProductDto);
   }
@@ -40,7 +39,9 @@ export class ProductController {
   }
 
   @Get('category/:categoryId')
-  findByCategory(@Param('categoryId', new ParseUUIDPipe()) categoryId: string) {
+  findByCategory(
+    @Param('categoryId', new ParseUUIDPipe()) categoryId: string
+  ) {
     return this.productService.findByCategory(categoryId);
   }
 }
