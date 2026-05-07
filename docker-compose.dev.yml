@@ -50,6 +50,7 @@ services:
     command: npm run start:dev
     networks:
       - micro-net
+
   product-service:
     build:
       context: ./product
@@ -64,6 +65,8 @@ services:
     command: npm run start:dev
     networks:
       - micro-net
+
+
 
 networks:
   micro-net:

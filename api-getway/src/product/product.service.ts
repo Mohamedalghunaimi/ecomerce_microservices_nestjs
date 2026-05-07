@@ -44,4 +44,8 @@ constructor(
     return this.productClient.send("upload_img",{ file ,productId})
   }
 
+  deleteProductImg(imageId:string) {
+    return this.productClient.send("delete_product_img",{ imageId })
+  }
+
 }

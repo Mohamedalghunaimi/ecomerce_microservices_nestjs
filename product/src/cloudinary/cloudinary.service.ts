@@ -12,13 +12,23 @@ export class CloudinaryService {
             const result = await cloudinary.uploader.upload(path,{folder:`productsImges-${productId}`})
             await fs.unlink(path);
 
-            return result.secure_url
+            return result
         } catch (error) {
             console.error(error)
             throw new InternalServerErrorException('something went wrong in the server')
             
         }
 
+    }
+
+    public async deleteImage(publicId:string) {
+        try {
+            await cloudinary.uploader.destroy(publicId)
+        } catch (error) {
+            console.error(error)
+            throw new InternalServerErrorException('something went wrong')
+            
+        }
     }
 
 

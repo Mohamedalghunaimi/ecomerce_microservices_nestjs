@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
@@ -115,7 +111,6 @@ export class ProductService {
 
     public async delete(id:string) : Promise<{message:string}> {
         const existingProduct = await this.prisma.product.findFirst({
-
             where: { id ,isActive: true  }
         });
         if (!existingProduct) {
@@ -163,7 +158,6 @@ export class ProductService {
                 message:"product is already active"
             })
         }
-
         const updatedProduct = await this.prisma.product.update({
             where:{id,isActive:false},
             data:{isActive:true}
@@ -181,8 +175,10 @@ export class ProductService {
             file,
             productId
         )
+        
         const existingProduct = await this.prisma.product.findUnique({
-            where:{id:productId}
+            where:{id:productId},
+            select:{id:true}
         })
         if(!existingProduct) {
             throw new RpcException({
@@ -192,16 +188,34 @@ export class ProductService {
         }
         const newProductImage = await this.prisma.productImage.create({
             data:{
-                url:result,
-                productId
+                url:result.secure_url,
+                productId:existingProduct.id,
+                publicId:result.public_id
             }
         })
-
         return newProductImage
+    }
 
+    public async deleteProductImage(
+        id:string
+    ) {
+        const existingImage = await this.prisma.productImage.findUnique({
+            where:{id},
+            select:{id:true,publicId:true}
 
+        })
+        if(!existingImage) {
+            throw new RpcException({
+                status:404,
+                message:"image not found"
+            })
+        }
+        await this.cloudinaryService.deleteImage(existingImage.publicId as string)
+        const deletedImage = await this.prisma.productImage.delete({
+            where:{id},
+        })
 
-
+        return deletedImage
     }
 
 

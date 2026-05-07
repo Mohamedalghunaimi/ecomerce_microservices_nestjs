@@ -50,4 +50,12 @@ export class ProductController {
   ) {
     return this.productService.upload(file,productId)
   }
+
+  @MessagePattern("delete_product_img")
+  deleteImage(
+    {imageId}:{imageId:string}
+  ) {
+    return this.productService.deleteProductImage(imageId)
+
+  }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { ProductService } from './product.service';
@@ -65,6 +64,16 @@ export class ProductController {
     return this.productService.uploadImage(file.path,productId)
 
   }
+
+  @UseGuards(JwtGuard, AdminGuard)
+  @Delete("product/image/:id")
+  public deleteProductImg(
+    @Param("id",new ParseUUIDPipe()) id:string
+  ) {
+    return this.productService.deleteProductImg(id)
+
+  }
+
 
 
 
