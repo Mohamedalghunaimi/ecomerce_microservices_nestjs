@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { CloudinaryService } from './cloudinary.service';
-
+@Global()
 @Module({
   providers: [CloudinaryService],
   exports:[CloudinaryService]

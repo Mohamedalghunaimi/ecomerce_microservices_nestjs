@@ -11,6 +11,7 @@ services:
     depends_on:
       - auth-service
       - user-service
+      - product-service
     env_file:
       - ./api-getway/.env
     volumes:

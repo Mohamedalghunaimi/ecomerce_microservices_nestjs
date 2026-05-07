@@ -9,6 +9,7 @@ services:
     depends_on:
       - user-service
       - auth-service
+      - product-service
     env_file:
       - ./api-getway/.env
     restart: always

@@ -23,7 +23,9 @@ export class CloudinaryService {
 
     public async deleteImage(publicId:string) {
         try {
-            await cloudinary.uploader.destroy(publicId)
+            await cloudinary.uploader.destroy(publicId,{
+                resource_type:"image"
+            })
         } catch (error) {
             console.error(error)
             throw new InternalServerErrorException('something went wrong')
