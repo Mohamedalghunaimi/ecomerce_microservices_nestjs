@@ -6,6 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { Product } from '@prisma/client';
+import { threadCpuUsage } from 'process';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductData } from 'utils/interfaces';
 
@@ -142,6 +143,33 @@ export class ProductService {
             where: { categoryId, isActive: true },
         });
         return products;
+    }
+
+    async reActive(id:string) {
+        const existingProduct = await this.prisma.product.findUnique({
+            where:{id}
+        })
+        if(!existingProduct) {
+            throw new RpcException({
+                status:404,
+                message:"product not found"
+                
+            })
+        }
+        if(existingProduct.isActive) {
+            throw new RpcException({
+                status:400,
+                message:"product is already active"
+            })
+        }
+
+        const updatedProduct = await this.prisma.product.update({
+            where:{id,isActive:false},
+            data:{isActive:true}
+        })
+
+        return updatedProduct
+
     }
 
 

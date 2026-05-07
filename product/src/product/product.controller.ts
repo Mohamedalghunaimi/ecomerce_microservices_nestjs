@@ -37,4 +37,10 @@ export class ProductController {
   findByCategory(data: { categoryId: string }) {
     return this.productService.findByCategory(data.categoryId);
   }
+
+  @MessagePattern('reActive_Product_by_id')
+  reActive({id}:{id:string}) {
+    return this.productService.reActive(id);
+
+  }
 }

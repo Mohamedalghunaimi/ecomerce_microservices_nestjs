@@ -33,4 +33,11 @@ constructor(
   findByCategory(categoryId: string) {
     return this.productClient.send('find_products_by_category', { categoryId });
   }
+
+  reActive(id:string) {
+    return this.productClient.send('reActive_Product_by_id', { id });
+
+
+  }
+
 }

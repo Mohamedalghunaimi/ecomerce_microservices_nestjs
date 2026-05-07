@@ -22,19 +22,19 @@ export class ProductController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.productService.findOne(id);
   }
 
   @Patch(':id')
   @UseGuards(JwtGuard, AdminGuard)
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(id, updateProductDto);
   }
 
   @Delete(':id')
   @UseGuards(JwtGuard, AdminGuard)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.productService.remove(id);
   }
 
@@ -43,5 +43,13 @@ export class ProductController {
     @Param('categoryId', new ParseUUIDPipe()) categoryId: string
   ) {
     return this.productService.findByCategory(categoryId);
+  }
+
+  @Patch("re-active/:id")
+  reActiveProduct(
+    @Param('id',new ParseUUIDPipe() ) id:string
+  ) {
+    return this.productService.reActive(id)
+
   }
 }
