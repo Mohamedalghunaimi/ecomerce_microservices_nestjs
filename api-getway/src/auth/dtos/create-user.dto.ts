@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-import { IsEmail, IsNotEmpty, IsString, Matches,  MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, Matches,  MinLength } from "class-validator";
 
 
 export class CreateUserDto {
@@ -25,5 +25,21 @@ export class CreateUserDto {
     )
     @MinLength(8)
     password!:string
+
+    @IsString()
+    @IsNotEmpty()
+    firstName!: string
+
+    @IsString()
+    @IsNotEmpty()
+    lastName!: string
+
+    @IsString()
+    @IsNotEmpty()
+    @IsPhoneNumber("EG", { message: 'Invalid phone number' })
+    phone!:string
+
+
+
 
 }

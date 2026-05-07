@@ -10,7 +10,7 @@ export class AppService {
   constructor(private readonly prisma: PrismaService) {}
 
   public async createOne(data: UserData) {
-    const { authId } = data;
+    const { authId, firstName, lastName, phone } = data;
     const existingUser = await this.prisma.userProfile.findUnique({
       where: {
         authId,
@@ -23,6 +23,9 @@ export class AppService {
     const newUser = await this.prisma.userProfile.create({
       data: {
         authId,
+        firstName,
+        lastName,
+        phone
       },
     });
     return newUser; 

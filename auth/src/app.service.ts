@@ -49,7 +49,7 @@ export class AppService {
   }
 
   public async register(data: RegisterData) {
-    const { email, password } = data;
+    const { email, password, firstName, lastName, phone } = data;
       const existingUser = await this.prisma.user.findUnique({
         where: {
           email
@@ -69,7 +69,7 @@ export class AppService {
         id: user.id,
         role: user.role
       }
-      this.userClient.emit('user.created', { authId: user.id });
+      this.userClient.emit('user.created', { authId: user.id , firstName, lastName, phone });
       const accessToken = await this.jwtService.signAsync(userPayload);
       return { accessToken }; 
 

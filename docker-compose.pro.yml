@@ -30,6 +30,13 @@ services:
     restart: always
     networks:
       - micro-net
+  product-service:
+    build: ./product
+    env_file:
+      - ./product/.env
+    restart: always
+    networks:
+      - micro-net
 
 networks:
   micro-net:

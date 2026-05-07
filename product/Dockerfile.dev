@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# 1. تثبيت المكتبات (Caching Layer)
+COPY package*.json ./
+RUN npm install
+
+# 2. توليد Prisma Client (Caching Layer)
+COPY prisma ./prisma
+RUN npx prisma generate
+
+# 3. نسخ باقي ملفات المشروع
+COPY . .
+
+EXPOSE 3001
+
+# 4. التشغيل (التطوير)
+CMD ["npm", "run", "start:dev"]

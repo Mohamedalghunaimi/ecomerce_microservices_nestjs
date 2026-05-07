@@ -50,6 +50,20 @@ services:
     command: npm run start:dev
     networks:
       - micro-net
+  product-service:
+    build:
+      context: ./product
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3003:3000"
+    env_file:
+      - ./product/.env
+    volumes:
+      - ./product:/app
+      - /app/node_modules
+    command: npm run start:dev
+    networks:
+      - micro-net
 
 networks:
   micro-net:

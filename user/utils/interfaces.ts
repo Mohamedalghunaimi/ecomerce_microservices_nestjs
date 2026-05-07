@@ -2,6 +2,9 @@
 
 export interface UserData {
     authId: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
 
 }
 
