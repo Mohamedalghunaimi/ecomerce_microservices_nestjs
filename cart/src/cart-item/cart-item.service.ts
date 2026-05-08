@@ -3,15 +3,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { CartItem } from '@prisma/client';
+import { CartService } from 'src/cart/cart.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CartData } from 'utils/interfaces';
 
 @Injectable()
 export class CartItemService {
-  constructor(private readonly prisma:PrismaService) {}
+  constructor(
+    private readonly prisma:PrismaService,
+    @Inject(forwardRef(() => CartService))
+    private readonly cartService:CartService
+  ) {}
 
   async findAll(
     cartId:string,
@@ -46,14 +51,30 @@ export class CartItemService {
         message:"cart-item not found"
       })
     }
-    await this.prisma.cartItem.update({
+    if(quantity && quantity > existingCartItem.quantity) {
+      await this.cartService.updateCartToIncrease({
+        id:existingCartItem.cartId,
+        quantity : existingCartItem.quantity - quantity ,
+        price:existingCartItem.price
+      })
+
+    } else if (quantity && quantity < existingCartItem.quantity) {
+      await this.cartService.updateCartToDecrease({
+        id:existingCartItem.cartId,
+        quantity :  quantity - existingCartItem.quantity ,
+        price:existingCartItem.price
+      })
+    }
+    const updatedCartItem = await this.prisma.cartItem.update({
       where:{id:existingCartItem.id},
       data:{
-        quantity : {
-          increment: quantity ?? 0
-        }
+        quantity 
       }
     })
+    return updatedCartItem
+
+
+    
     
       
   }
@@ -62,7 +83,6 @@ export class CartItemService {
     return this.prisma.$transaction(async(prisma)=> {
     const existingCartItem = await prisma.cartItem.findFirst({
       where:{id,cart:{userId}},
-      select:{id:true}
     });
     if(!existingCartItem) {
       throw new RpcException({
@@ -70,6 +90,11 @@ export class CartItemService {
         message:"cart-item not found"
       })
     }  
+    await this.cartService.updateCartToDecrease({
+      id:existingCartItem.cartId,
+      quantity:existingCartItem.quantity,
+      price:existingCartItem.price
+    })
     await prisma.cartItem.delete({
       where:{id:existingCartItem.id}
       

@@ -3,9 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { Cart } from '@prisma/client';
+import { CartItemService } from 'src/cart-item/cart-item.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CartData } from 'utils/interfaces';
 
@@ -13,7 +14,9 @@ import { CartData } from 'utils/interfaces';
 @Injectable()
 export class CartService {
   constructor(
-    private readonly prisma :PrismaService
+    private readonly prisma :PrismaService,
+    @Inject(forwardRef(() => CartItemService))
+    private readonly cartItemService:CartItemService
   ) {
 
   }
@@ -40,14 +43,16 @@ export class CartService {
       })
       return newCart ;
     }
-    const existingCartItem = await this.prisma.cartItem.findFirst({
+    const existingCartItem = await this.prisma.cartItem.findUnique({
       where:{
-        cartId:existingCart.id,
-        productId
+        cartId_productId: {
+          cartId: existingCart.id,
+          productId
+        }
       }
     })
     if(!existingCartItem) {
-      await this.prisma.cartItem.create({
+      const updatedCartItem = await this.prisma.cartItem.create({
         data:{
           cartId:existingCart.id,
           productId,
@@ -56,10 +61,15 @@ export class CartService {
           quantity
         }
       })
+      await this.updateCartToIncrease({
+        id:updatedCartItem.id,
+        quantity,
+        price
+      })
       return existingCart
     }
 
-    await this.prisma.cartItem.update({
+    const updatedCartItem = await this.prisma.cartItem.update({
       where: {
         cartId_productId: {
           cartId: existingCart.id,
@@ -69,8 +79,16 @@ export class CartService {
       data: {
         quantity: {
           increment:quantity
-        }
+        },
+        
+        
       }
+    })
+
+    await this.updateCartToIncrease({
+      id:updatedCartItem.id,
+      quantity,
+      price
     })
 
     return existingCart;
@@ -113,5 +131,33 @@ export class CartService {
 
  
 
+  }
+
+  async updateCartToDecrease(
+    {id,quantity,price}:{id:string,quantity:number,price:number}
+  ) {
+      await this.prisma.cart.update({
+      where:{id},
+      data:{
+        totalPrice:{
+          decrement:quantity * price
+        }
+      }
+    })
+
+  }
+
+  async updateCartToIncrease(
+    {id,quantity,price}:{id:string,quantity:number,price:number}
+  ) {
+    
+    await this.prisma.cart.update({
+      where:{id},
+      data:{
+        totalPrice:{
+          increment:quantity * price
+        }
+      }
+    })
   }
 }
