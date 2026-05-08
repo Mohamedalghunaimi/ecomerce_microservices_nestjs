@@ -6,6 +6,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { Cart } from '@prisma/client';
+import { PrismaClient } from '@prisma/client/extension';
 import { CartItemService } from 'src/cart-item/cart-item.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CartData } from 'utils/interfaces';
@@ -24,7 +25,10 @@ export class CartService {
     const {productId,productName,price,quantity} = cartData ;
 
     const existingCart = await this.prisma.cart.findUnique({
-      where:{userId}
+      where:{userId},
+      include:{
+        items:true
+      }
     })
     if(!existingCart) {
       const newCart = await this.prisma.cart.create({
@@ -39,6 +43,9 @@ export class CartService {
               quantity
             }
           }
+        },
+        include:{
+          items:true
         }
       })
       return newCart ;
@@ -61,35 +68,21 @@ export class CartService {
           quantity
         }
       })
-      await this.updateCartToIncrease({
-        id:updatedCartItem.id,
-        quantity,
-        price
+      const amount = quantity * price
+      await this.updateCart({
+        id:updatedCartItem.cartId,
+        amount
+      
       })
       return existingCart
     }
 
-    const updatedCartItem = await this.prisma.cartItem.update({
-      where: {
-        cartId_productId: {
-          cartId: existingCart.id,
-          productId
-        }
-      },
-      data: {
-        quantity: {
-          increment:quantity
-        },
-        
-        
-      }
-    })
 
-    await this.updateCartToIncrease({
-      id:updatedCartItem.id,
-      quantity,
-      price
-    })
+    await this.cartItemService.update(
+      existingCartItem.id,
+      {quantity},
+      userId
+    )
 
     return existingCart;
 
@@ -125,37 +118,22 @@ export class CartService {
     return {
       message:"cart is deleted successfully!"
     }
-
-
     }) 
-
- 
-
   }
 
-  async updateCartToDecrease(
-    {id,quantity,price}:{id:string,quantity:number,price:number}
-  ) {
-      await this.prisma.cart.update({
-      where:{id},
-      data:{
-        totalPrice:{
-          decrement:quantity * price
-        }
-      }
-    })
 
-  }
 
-  async updateCartToIncrease(
-    {id,quantity,price}:{id:string,quantity:number,price:number}
+
+  async updateCart(
+    {id,amount }:{id:string,amount:number},
+    prisma:PrismaClient = this.prisma
   ) {
     
-    await this.prisma.cart.update({
+    await prisma.cart.update({
       where:{id},
       data:{
         totalPrice:{
-          increment:quantity * price
+          increment:amount
         }
       }
     })

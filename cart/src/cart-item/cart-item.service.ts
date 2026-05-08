@@ -42,7 +42,9 @@ export class CartItemService {
 
   async update(id: string, updateCartItemDto: Partial<CartData>,userId:string) {
     const { quantity } = updateCartItemDto ;
-    const existingCartItem = await this.prisma.cartItem.findFirst({
+
+    return this.prisma.$transaction(async(prisma)=> {
+    const existingCartItem = await prisma.cartItem.findFirst({
       where:{id,cart:{userId}}
     });
     if(!existingCartItem) {
@@ -51,27 +53,30 @@ export class CartItemService {
         message:"cart-item not found"
       })
     }
-    if(quantity && quantity > existingCartItem.quantity) {
-      await this.cartService.updateCartToIncrease({
-        id:existingCartItem.cartId,
-        quantity : existingCartItem.quantity - quantity ,
-        price:existingCartItem.price
+    if(!quantity) {
+      throw new RpcException({
+        status:400,
+        message:"quantity is required"
       })
 
-    } else if (quantity && quantity < existingCartItem.quantity) {
-      await this.cartService.updateCartToDecrease({
-        id:existingCartItem.cartId,
-        quantity :  quantity - existingCartItem.quantity ,
-        price:existingCartItem.price
-      })
-    }
-    const updatedCartItem = await this.prisma.cartItem.update({
+    } 
+    const amount = (existingCartItem.quantity - quantity) * existingCartItem.price ;
+
+    await this.cartService.updateCart({
+      id:existingCartItem.cartId,
+      amount,
+    },prisma)
+
+    const updatedCartItem = await prisma.cartItem.update({
       where:{id:existingCartItem.id},
       data:{
         quantity 
       }
     })
     return updatedCartItem
+    })
+
+
 
 
     
@@ -90,15 +95,23 @@ export class CartItemService {
         message:"cart-item not found"
       })
     }  
-    await this.cartService.updateCartToDecrease({
+    const amount = (existingCartItem.quantity * existingCartItem.price * -1 );
+
+
+    await this.cartService.updateCart({
       id:existingCartItem.cartId,
-      quantity:existingCartItem.quantity,
-      price:existingCartItem.price
-    })
+      amount
+    },prisma)
+
+
+
     await prisma.cartItem.delete({
       where:{id:existingCartItem.id}
       
     })
+
+
+    
     return {
       message :"cart-item is deleted"
     }
