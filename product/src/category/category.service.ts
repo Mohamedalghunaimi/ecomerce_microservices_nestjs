@@ -74,7 +74,7 @@ export class CategoryService {
       })
     }
     await this.prisma.category.update({
-      where:{id,isActive:true},
+      where:{id},
       data:{isActive:false}
     })
     await this.redisService.delete(`products_category_${id}`)

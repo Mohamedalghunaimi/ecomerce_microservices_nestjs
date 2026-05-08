@@ -201,7 +201,7 @@ export class ProductService {
             })
         }
         const updatedProduct = await this.prisma.product.update({
-            where:{id,isActive:false},
+            where:{id},
             data:{isActive:true}
         })
         await this.redisService.set(`product-${id}`,JSON.stringify(updatedProduct))

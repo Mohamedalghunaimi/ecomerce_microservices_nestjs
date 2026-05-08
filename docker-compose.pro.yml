@@ -7,9 +7,11 @@ services:
     ports:
       - "3000:3000"
     depends_on:
+      - redis
       - user-service
       - auth-service
       - product-service
+      - cart-service
     env_file:
       - ./api-getway/.env
     restart: always
@@ -21,7 +23,10 @@ services:
     env_file:
       - ./user/.env
     restart: always
-
+    environment :
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
     networks:
       - micro-net
 
@@ -32,6 +37,8 @@ services:
     restart: always
     environment :
       - REDIS_HOST=redis
+    depends_on:
+      - redis
     networks:
       - micro-net
   product-service:
@@ -46,11 +53,24 @@ services:
     networks:
       - micro-net
 
+  cart-service:
+    build: ./cart
+    env_file:
+      - ./cart/.env
+    restart: always
+    environment :
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    networks:
+      - micro-net
   redis: 
     image: redis:alpine
     container_name: redis-pro
     ports:
       - "6379:6379"
+    networks:
+      - micro-net
 
 networks:
   micro-net:

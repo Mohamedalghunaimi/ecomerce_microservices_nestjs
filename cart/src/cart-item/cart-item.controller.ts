@@ -1,34 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable prettier/prettier */
+import { Controller } from '@nestjs/common';
 import { CartItemService } from './cart-item.service';
-import { CreateCartItemDto } from './dto/create-cart-item.dto';
-import { UpdateCartItemDto } from './dto/update-cart-item.dto';
+import { MessagePattern } from '@nestjs/microservices';
+import { CartData } from 'utils/interfaces';
+
 
 @Controller('cart-item')
 export class CartItemController {
   constructor(private readonly cartItemService: CartItemService) {}
 
-  @Post()
-  create(@Body() createCartItemDto: CreateCartItemDto) {
-    return this.cartItemService.create(createCartItemDto);
+
+   
+  @MessagePattern('cart_items')
+  findAll(
+    {userId,cartId}:{userId:string,cartId:string}
+  ) {
+    return this.cartItemService.findAll(cartId,userId);
   }
 
-  @Get()
-  findAll() {
-    return this.cartItemService.findAll();
+  @MessagePattern("update_cart_item")
+  update(
+  { userId , id ,...updateCartItemDto} : {userId:string , id:string}  & Partial<CartData>
+  ) {
+    return this.cartItemService.update(id, updateCartItemDto,userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cartItemService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCartItemDto: UpdateCartItemDto) {
-    return this.cartItemService.update(+id, updateCartItemDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartItemService.remove(+id);
+  @MessagePattern("remove_cart_item")
+  remove(
+    { userId , id } :{ userId:string,id:string}
+  ) {
+    return this.cartItemService.remove(id,userId);
   }
 }

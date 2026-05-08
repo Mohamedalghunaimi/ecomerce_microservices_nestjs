@@ -29,7 +29,7 @@ COPY --from=builder /app/prisma ./prisma
 # تثبيت مستخدم غير جذر للأمان
 USER node
 
-EXPOSE 3003
+EXPOSE 3004
 
 # استخدام shell لتنفيذ الميغريشن ثم تشغيل التطبيق
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]

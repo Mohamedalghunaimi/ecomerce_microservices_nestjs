@@ -1,26 +1,18 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 import { CreateCartDto } from './dto/create-cart.dto';
-import { UpdateCartDto } from './dto/update-cart.dto';
 
 @Injectable()
 export class CartService {
-  create(createCartDto: CreateCartDto) {
-    return 'This action adds a new cart';
+  constructor(
+    @Inject('PRODUCT_SERVICE') private readonly cartClient: ClientProxy,
+  ) {}
+  create(createCartDto: CreateCartDto,userId:string) {
+    return this.cartClient.send('create_cart', { ...createCartDto , userId});
   }
 
-  findAll() {
-    return `This action returns all cart`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} cart`;
-  }
-
-  update(id: number, updateCartDto: UpdateCartDto) {
-    return `This action updates a #${id} cart`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} cart`;
+  remove(id: string,userId:string) {
+    return this.cartClient.send('delete_cart', { id , userId});
   }
 }

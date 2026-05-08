@@ -1,34 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+import { Controller, Get,  Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { CartItemService } from './cart-item.service';
-import { CreateCartItemDto } from './dto/create-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
+import { JwtGuard } from 'src/auth/gurads/jwt/jwt.guard';
+import { User } from 'src/auth/decorators/user.decorator';
+import type { UserPayload } from 'utils/types';
 
-@Controller('cart-item')
+@Controller('cart-items')
+@UseGuards(JwtGuard)
+
 export class CartItemController {
   constructor(private readonly cartItemService: CartItemService) {}
 
-  @Post()
-  create(@Body() createCartItemDto: CreateCartItemDto) {
-    return this.cartItemService.create(createCartItemDto);
+
+
+  @Get(":cartId")
+  findAll(
+    @User() user:UserPayload,
+    @Param('cartId',new ParseUUIDPipe()) cartId:string
+
+  ) {
+    return this.cartItemService.findAll(
+      user.id,
+      cartId
+
+    );
   }
 
-  @Get()
-  findAll() {
-    return this.cartItemService.findAll();
-  }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cartItemService.findOne(+id);
-  }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCartItemDto: UpdateCartItemDto) {
-    return this.cartItemService.update(+id, updateCartItemDto);
+  update(
+    @Param('id') id: string, 
+    @Body() updateCartItemDto: UpdateCartItemDto,
+    @User() user:UserPayload,
+  ) {
+    return this.cartItemService.update(id, updateCartItemDto,user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartItemService.remove(+id);
+  remove(
+    @Param('id') id: string,
+    @User() user:UserPayload,
+  ) {
+    return this.cartItemService.remove(id,user.id);
   }
 }

@@ -9,9 +9,11 @@ services:
     ports:
       - "3000:3000"
     depends_on:
+      - redis
       - auth-service
       - user-service
       - product-service
+      - cart-service
     env_file:
       - ./api-getway/.env
     volumes:
@@ -36,6 +38,8 @@ services:
     command: npm run start:dev
     environment :
       - REDIS_HOST=redis
+    depends_on:
+      - redis
     networks:
       - micro-net
 
@@ -55,6 +59,8 @@ services:
     command: npm run start:dev
     environment :
       - REDIS_HOST=redis
+    depends_on:
+      - redis
     networks:
       - micro-net
 
@@ -77,12 +83,29 @@ services:
     networks:
       - micro-net
 
+  cart-service:
+    build:
+      context: ./cart
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3004:3000"
+    env_file:
+      - ./cart/.env
+    volumes:
+      - ./cart:/app
+      - /app/node_modules
+    command: npm run start:dev
+    depends_on:
+      - redis
+    networks:
+      - micro-net
   redis: 
     image: redis:alpine
     container_name: redis-dev
     ports:
       - "6379:6379"
-
+    networks:
+      - micro-net
 
 
 
