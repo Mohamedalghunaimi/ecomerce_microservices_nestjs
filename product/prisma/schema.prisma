@@ -59,7 +59,7 @@ model ProductImage {
 
   url       String
 
-  publicId String
+  publicId  String
 
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)

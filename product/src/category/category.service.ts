@@ -3,11 +3,16 @@ import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { Category } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RedisService } from 'src/redis/redis.service';
 import { CategoryData } from 'utils/interfaces';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prisma:PrismaService) {}
+  constructor(
+    private readonly prisma:PrismaService,
+    private readonly redisService:RedisService
+
+  ) {}
   public async create(createCategoryDto: CategoryData) :Promise<Category> {
     const {slug} = createCategoryDto;
     const existingCategory = await this.prisma.category.findUnique({
@@ -72,6 +77,7 @@ export class CategoryService {
       where:{id,isActive:true},
       data:{isActive:false}
     })
+    await this.redisService.delete(`products_category_${id}`)
 
     return {
       message:"category is deleted successfully"

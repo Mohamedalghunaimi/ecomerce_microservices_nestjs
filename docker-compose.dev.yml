@@ -17,6 +17,8 @@ services:
     volumes:
       - ./api-getway:/app
     command: npm run start:dev
+    environment :
+      - REDIS_HOST=redis
     networks:
       - micro-net
 
@@ -32,6 +34,10 @@ services:
       - ./user:/app
       - /app/node_modules
     command: npm run start:dev
+    environment :
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
     networks:
       - micro-net
 
@@ -49,6 +55,10 @@ services:
       - ./auth:/app
       - /app/node_modules
     command: npm run start:dev
+    environment :
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
     networks:
       - micro-net
 
@@ -64,8 +74,21 @@ services:
       - ./product:/app
       - /app/node_modules
     command: npm run start:dev
+    environment :
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
     networks:
       - micro-net
+
+  redis: 
+    image: redis:alpine
+    container_name: redis-dev
+    ports:
+      - "6379:6379"
+
+
+
 
 
 

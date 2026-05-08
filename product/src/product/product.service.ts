@@ -1,16 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { Product } from '@prisma/client';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RedisService } from 'src/redis/redis.service';
 import { ProductData } from 'utils/interfaces';
 
 @Injectable()
 export class ProductService {
     constructor(
         private readonly prisma:PrismaService,
-        private readonly cloudinaryService:CloudinaryService
+        private readonly cloudinaryService:CloudinaryService,
+        private readonly redisService:RedisService
     ) {}
 
     public async create(data:ProductData) : Promise<Product> {
@@ -43,18 +48,35 @@ export class ProductService {
                 brand,
             },
         });
+        await this.redisService.push<Product>('products',product);
+
         return product;
     }
 
 
     public async findAll() : Promise<Product[]> {
+
+
+        const cached = await this.redisService.get<Product[]>('products');
+        if(cached) {
+            return cached
+        }
+
+
         const products: Product[] = await this.prisma.product.findMany({
-            where: { isActive: true , category:{ isActive: true } },
+            where: { isActive: true, category: { isActive: true } },
         });
+
+        await this.redisService.set('products',JSON.stringify(products))
+
         return products;
     }
 
     public async findOne(id:string) : Promise<Product> {
+        const cached = await this.redisService.get<Product>(`product-${id}`);
+        if(cached) {
+            return cached
+        }
         const product  = await this.prisma.product.findFirst({
             where: { id ,isActive: true , category:{ isActive: true } },
         });
@@ -64,6 +86,7 @@ export class ProductService {
                 message: 'Product not found',
             });
         }
+        await this.redisService.set(`product-${id}`,JSON.stringify(product))
         return product;
     
     }
@@ -106,6 +129,11 @@ export class ProductService {
             where: { id },
             data,
         });
+
+        await this.redisService.set(`product-${id}`,JSON.stringify(updatedProduct))
+        await this.redisService.replace('products',updatedProduct)
+
+
         return updatedProduct;
     }
 
@@ -123,21 +151,35 @@ export class ProductService {
             where: { id },
             data: { isActive: false },
         });
+        await this.redisService.delete(`product-${id}`)
+        await this.redisService.deleteItem('products',existingProduct.id)
+
         return { message: 'Product deleted successfully' };
     }
     public async findByCategory(categoryId:string) : Promise<Product[]> {
         const existingCategory = await this.prisma.category.findFirst({
-            where: { id: categoryId ,isActive: true },
+            where: { id: categoryId , isActive: true },
         });
         if (!existingCategory) {
             throw new RpcException({
                 status: 404,
                 message: 'Category not found',
             });
-        }   
+        } 
+        const cached = await this.redisService.get<Product[]>(`products_category_${categoryId}`) ;
+        if(cached) {
+            return cached
+        }
         const products : Product[] = await this.prisma.product.findMany({
-            where: { categoryId, isActive: true },
+            where: { 
+                categoryId, 
+                isActive: true ,
+                category :{ isActive : true}
+            },
         });
+        await this.redisService.set(`products_category_${categoryId}`,JSON.stringify(products))
+
+
         return products;
     }
 
@@ -148,20 +190,23 @@ export class ProductService {
         if(!existingProduct) {
             throw new RpcException({
                 status:404,
-                message:"product not found"
+                message:"Product not found"
                 
             })
         }
         if(existingProduct.isActive) {
             throw new RpcException({
                 status:400,
-                message:"product is already active"
+                message:"Product is already active"
             })
         }
         const updatedProduct = await this.prisma.product.update({
             where:{id,isActive:false},
             data:{isActive:true}
         })
+        await this.redisService.set(`product-${id}`,JSON.stringify(updatedProduct))
+        await this.redisService.replace('products',updatedProduct)
+
 
         return updatedProduct
 
@@ -183,7 +228,7 @@ export class ProductService {
         if(!existingProduct) {
             throw new RpcException({
                 status:404,
-                message:"product not found"
+                message:"Product not found"
             })
         }
         const newProductImage = await this.prisma.productImage.create({
@@ -196,10 +241,11 @@ export class ProductService {
         return newProductImage
     }
 
-    public async deleteProductImage(
+    public  deleteProductImage(
         id:string
     ) {
-        const existingImage = await this.prisma.productImage.findUnique({
+        return this.prisma.$transaction(async(prisma)=> {
+        const existingImage = await prisma.productImage.findUnique({
             where:{id},
             select:{id:true,publicId:true}
 
@@ -210,12 +256,15 @@ export class ProductService {
                 message:"image not found"
             })
         }
-        await this.cloudinaryService.deleteImage(existingImage.publicId as string)
-        const deletedImage = await this.prisma.productImage.delete({
+        await this.cloudinaryService.deleteImage(existingImage.publicId)
+        const deletedImage = await prisma.productImage.delete({
             where:{id},
         })
 
         return deletedImage
+        })
+
+
     }
 
 
