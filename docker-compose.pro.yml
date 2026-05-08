@@ -21,6 +21,7 @@ services:
     env_file:
       - ./user/.env
     restart: always
+
     networks:
       - micro-net
 
@@ -29,6 +30,8 @@ services:
     env_file:
       - ./auth/.env
     restart: always
+    environment :
+      - REDIS_HOST=redis
     networks:
       - micro-net
   product-service:
@@ -36,8 +39,18 @@ services:
     env_file:
       - ./product/.env
     restart: always
+    environment :
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
     networks:
       - micro-net
+
+  redis: 
+    image: redis:alpine
+    container_name: redis-pro
+    ports:
+      - "6379:6379"
 
 networks:
   micro-net:

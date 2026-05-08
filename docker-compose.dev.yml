@@ -36,8 +36,6 @@ services:
     command: npm run start:dev
     environment :
       - REDIS_HOST=redis
-    depends_on:
-      - redis
     networks:
       - micro-net
 
@@ -57,8 +55,6 @@ services:
     command: npm run start:dev
     environment :
       - REDIS_HOST=redis
-    depends_on:
-      - redis
     networks:
       - micro-net
 

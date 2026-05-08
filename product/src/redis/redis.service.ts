@@ -66,7 +66,10 @@ export class RedisService implements OnModuleDestroy{
 
     }
 
-    public async replace(key:string,newItem:any) {
+    public async replace(
+        key:string,
+        newItem:any
+    ) {
         const cached = await this.client.get(key);
         if(!cached) {
             return 
