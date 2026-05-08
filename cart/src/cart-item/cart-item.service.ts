@@ -22,6 +22,7 @@ export class CartItemService {
     cartId:string,
     userId:string
   ) : Promise<CartItem[]> {
+
     const existingCart = await this.prisma.cart.findUnique({
       where:{id:cartId,userId}
     })
@@ -44,6 +45,7 @@ export class CartItemService {
     const { quantity } = updateCartItemDto ;
 
     return this.prisma.$transaction(async(prisma)=> {
+      
     const existingCartItem = await prisma.cartItem.findFirst({
       where:{id,cart:{userId}}
     });
@@ -111,7 +113,7 @@ export class CartItemService {
     })
 
 
-    
+
     return {
       message :"cart-item is deleted"
     }
