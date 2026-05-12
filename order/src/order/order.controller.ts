@@ -3,6 +3,7 @@ import { Controller } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { MessagePattern } from '@nestjs/microservices';
 import { orderData } from 'utils/interfaces';
+import { OrderStatus } from '@prisma/client';
 
 @Controller('orders')
 export class OrderController {
@@ -31,5 +32,15 @@ export class OrderController {
     {orderId,userId}:{orderId:string,userId:string}
   ) {
     return this.orderService.remove(orderId,userId);
+  }
+
+
+  @MessagePattern("update_order_status")
+  updateStatus(
+    {newStatus,orderId}: {newStatus:OrderStatus,orderId:string}
+  ) {
+
+    return this.orderService.changeOrderStatus(newStatus,orderId)
+
   }
 }

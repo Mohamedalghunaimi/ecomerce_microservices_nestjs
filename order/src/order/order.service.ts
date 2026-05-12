@@ -6,6 +6,7 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { CartItem, orderData } from 'utils/interfaces';
 import { shippingFee, tax } from 'utils/constants';
+import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrderService {
@@ -118,6 +119,36 @@ export class OrderService {
     return {
       message:"Order is cancelled successfully"
     }
+
+  }
+
+
+  async changeOrderStatus(
+    newStatus: OrderStatus,
+    orderId:string
+  ) {
+    const existingOrder = await this.prisma.order.findUnique({
+      where:{id:orderId}
+    })
+    if(!existingOrder) {
+      throw new RpcException({
+        status:404,
+        message:"Order not found"
+      })
+    }
+    const updatedOrder = await this.prisma.order.update({
+      where:{id:orderId},
+      data:{
+        orderStatus:newStatus
+      }
+    })
+
+    return updatedOrder
+
+
+    
+
+
 
   }
 }

@@ -1,26 +1,42 @@
+/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { CreateOrderItemDto } from './dto/create-order-item.dto';
-import { UpdateOrderItemDto } from './dto/update-order-item.dto';
+import { RpcException } from '@nestjs/microservices';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class OrderItemService {
-  create(createOrderItemDto: CreateOrderItemDto) {
-    return 'This action adds a new orderItem';
+
+  constructor(private readonly prisma:PrismaService) {}
+  async findAll(
+    userId:string,
+    orderId:string
+  ) {
+    const existingOrder = await this.prisma.order.findFirst({
+      where:{
+        id:orderId,
+        userId
+      }
+    });
+    if(!existingOrder) {
+      throw new RpcException({
+        status:404,
+        message:"Order not found"
+      })
+    }
+
+    const orderItems = await this.prisma.orderItem.findMany({
+      where:{
+        orderId,
+        
+      }
+    })
+
+
+    return orderItems
+
+
+
   }
 
-  findAll() {
-    return `This action returns all orderItem`;
-  }
 
-  findOne(id: number) {
-    return `This action returns a #${id} orderItem`;
-  }
-
-  update(id: number, updateOrderItemDto: UpdateOrderItemDto) {
-    return `This action updates a #${id} orderItem`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} orderItem`;
-  }
 }
