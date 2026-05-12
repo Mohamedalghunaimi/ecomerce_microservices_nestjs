@@ -48,4 +48,31 @@ export class OrderController {
     return this.orderService.changeStatus(orderStatus,orderId)
 
   }
+
+
+  @Post('pay/:orderId')
+  pay(
+    @User() user:UserPayload,
+    @Param('orderId',new ParseUUIDPipe()) orderId:string
+  ) {
+    return this.orderService.pay(orderId,user.id)
+
+  }
+  @Post('success-pay/:orderId')
+  successPay(
+    @User() user:UserPayload,
+    @Param('orderId',new ParseUUIDPipe()) orderId:string
+  ) {
+    return this.orderService.successPay(orderId,user.id)
+
+  }
+
+  @Post('failed-pay/:orderId')
+  failedPay(
+    @User() user:UserPayload,
+    @Param('orderId',new ParseUUIDPipe()) orderId:string
+  ) {
+    return this.orderService.failedPay(orderId,user.id)
+
+  }
 }

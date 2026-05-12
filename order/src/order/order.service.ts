@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable prettier/prettier */
 import { Inject, Injectable } from '@nestjs/common';
@@ -7,12 +10,14 @@ import { firstValueFrom } from 'rxjs';
 import { CartItem, orderData } from 'utils/interfaces';
 import { shippingFee, tax } from 'utils/constants';
 import { OrderStatus } from '@prisma/client';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly prisma : PrismaService,
-    @Inject('CART_SERVICE') private readonly cartClient : ClientProxy
+    @Inject('CART_SERVICE') private readonly cartClient : ClientProxy,
+    private readonly stripe:StripeService
   ) {}
   async create(createOrderDto: orderData,userId:string) {
     const {
@@ -144,11 +149,129 @@ export class OrderService {
     })
 
     return updatedOrder
+  }
+
+  async pay(orderId:string,userId:string) {
+    const existingOrder = await this.prisma.order.findFirst({
+      where:{
+        id:orderId,
+        userId,
+        orderStatus:{
+          notIn:["CANCELLED","DELIVERED"]
+        },
+        paymentStatus:"PENDING"
+      }
+    });
+    if(!existingOrder) {
+      throw new RpcException({
+        status:404,
+        messae:"Order not found"
+      })
+    }
+
+    const session :any  = await this.stripe.createCheckoutSession(existingOrder) ;
+    await this.prisma.order.update({
+      where:{id:orderId},
+      data:{
+        stripeSession:session.id
+      }
+    })
 
 
+    return session.url 
+  }
+
+  async successPay(orderId:string,userId:string) {
+    const existingOrder = await this.prisma.order.findFirst({
+      where:{
+        id:orderId,
+        userId,
+        orderStatus:{
+          notIn:["CANCELLED","DELIVERED"]
+        },
+        paymentStatus:"PENDING"
+      }
+    });
+    if(!existingOrder) {
+      throw new RpcException({
+        status:404,
+        messae:"Order not found"
+      })
+    }
+    if(!existingOrder.stripeSession) {
+    await this.prisma.order.update({
+      where:{id:existingOrder.id},
+      data:{
+        paymentStatus:"FAILED",
+      }
+    });
+      throw new RpcException({
+        status:403,
+        message:"forbidden"
+      })
+    }
+    await this.stripe.captureSession(existingOrder.stripeSession as string)
+
+    const updatedOrder = await this.prisma.order.update({
+      where:{id:existingOrder.id},
+      data:{
+        paymentStatus:"PAID",
+        stripeSession:null
+      }
+    });
     
+    return updatedOrder
 
-
+  
 
   }
+
+  async failedPay(orderId:string,userId:string) {
+    const existingOrder = await this.prisma.order.findFirst({
+      where:{
+        id:orderId,
+        userId,
+        orderStatus:{
+          notIn:["CANCELLED","DELIVERED"]
+        },
+        paymentStatus:"PENDING"
+      }
+    });
+    if(!existingOrder) {
+
+      throw new RpcException({
+        status:404,
+        messae:"Order not found"
+      })
+    }
+    if(!existingOrder.stripeSession) {
+    await this.prisma.order.update({
+      where:{id:existingOrder.id},
+      data:{
+        paymentStatus:"FAILED",
+      }
+    });
+      throw new RpcException({
+        status:403,
+        message:"forbidden"
+      })
+    }
+    await this.stripe.captureSession(existingOrder.stripeSession as string)
+
+    const updatedOrder = await this.prisma.order.update({
+      where:{id:existingOrder.id},
+      data:{
+        paymentStatus:"FAILED",
+        stripeSession:null
+      }
+    });
+    
+    return updatedOrder
+
+  
+
+  }
+
+
+  
 }

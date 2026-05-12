@@ -40,4 +40,29 @@ export class OrderService {
   ) {
     return this.orderClient.send("update_order_status",{newStatus,orderId})
   }
+
+  pay(
+    orderId:string,
+    userId:string
+  ) {
+    return this.orderClient.send('pay_order_by_stripe',{orderId,userId})
+
+
+  }
+
+  successPay(
+    orderId:string,
+    userId:string
+  ) {
+
+    return this.orderClient.send("success_pay",{orderId,userId})
+
+  }
+
+  failedPay(
+    orderId:string,
+    userId:string
+  ) {
+    return this.orderClient.send("fail_pay",{orderId,userId})
+  }
 }

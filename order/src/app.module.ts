@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { OrderModule } from './order/order.module';
 import { OrderItemModule } from './order-item/order-item.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { OrderItemModule } from './order-item/order-item.module';
     }),
     OrderModule,
     OrderItemModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

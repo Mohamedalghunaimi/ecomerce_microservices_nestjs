@@ -32,6 +32,8 @@ model Order {
   address       String
   phone         String
 
+  stripeSession String?
+
   items         OrderItem[]
 
   createdAt     DateTime @default(now())
