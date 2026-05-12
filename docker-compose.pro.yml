@@ -64,6 +64,18 @@ services:
       - redis
     networks:
       - micro-net
+
+  order-service:
+    build: ./order
+    env_file:
+      - ./order/.env
+    restart: always
+    environment :
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    networks:
+      - micro-net
   redis: 
     image: redis:alpine
     container_name: redis-pro
