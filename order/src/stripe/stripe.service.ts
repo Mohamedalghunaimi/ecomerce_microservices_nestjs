@@ -50,15 +50,17 @@ export class StripeService {
         
 
     }
-    public async captureSession(sessionId:string)  {
+    public async retriveSession(sessionId:string)  {
+        try {
         const session = await this.stripe.checkout.sessions.retrieve(sessionId);
-        if(!session) {
+        return session
+        } catch (error) {
+            console.error(error)
             throw new RpcException({
                 status:404,
                 message:"Session is not existed"
             })
         }
 
-        return session
     }
 }

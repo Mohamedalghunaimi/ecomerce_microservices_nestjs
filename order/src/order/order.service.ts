@@ -199,18 +199,23 @@ export class OrderService {
       })
     }
     if(!existingOrder.stripeSession) {
+      throw new RpcException({
+        status: 400,
+        message: "Invalid stripe session"
+      })
+    }
+    const session = await this.stripe.retriveSession(existingOrder.stripeSession as string);
+    if(session.payment_status!=="paid") {
       await this.updateOrder({
         orderId:existingOrder.id,
         stripeSession:null,
         newStatus:"FAILED"
       })
-    
       throw new RpcException({
         status:403,
         message:"forbidden"
       })
     }
-    await this.stripe.captureSession(existingOrder.stripeSession as string)
 
 
 
@@ -241,21 +246,23 @@ export class OrderService {
 
       throw new RpcException({
         status:404,
-        messae:"Order not found"
+        message:"Order not found"
       })
     }
     if(!existingOrder.stripeSession) {
-      await this.updateOrder({
-        orderId:existingOrder.id,
-        stripeSession:null,
-        newStatus:"FAILED"
-      })
       throw new RpcException({
-        status:403,
-        message:"forbidden"
+        status: 400,
+        message: "Invalid stripe session"
       })
     }
-    await this.stripe.captureSession(existingOrder.stripeSession as string)
+    const session = await this.stripe.retriveSession(existingOrder.stripeSession);
+    if(session.payment_status!=="unpaid") {
+      throw new RpcException({
+        status:400,
+        message:"Order is paid"
+      })
+    }
+
 
     const updatedOrder = await this.updateOrder(
       {
