@@ -24,9 +24,9 @@ export class RedisService implements OnModuleDestroy{
         await this.client.set(key,cached,"EX",3600);
     }
 
-    public async get<T>(key:string):Promise<T[] | null> {
+    public async get<T>(key:string):Promise<T | null> {
         const cached = await this.client.get(key) ;
-        return cached? JSON.parse(cached ) as T[] :null
+        return cached? JSON.parse(cached ) as T :null
 
         
     }

@@ -169,7 +169,7 @@ export class OrderService {
       })
     }
 
-    const session :any  = await this.stripe.createCheckoutSession(existingOrder) ;
+    const session   = await this.stripe.createCheckoutSession(existingOrder) ;
     await this.prisma.order.update({
       where:{id:orderId},
       data:{
@@ -178,7 +178,7 @@ export class OrderService {
     })
 
 
-    return session.url 
+    return session.url
   }
 
   async successPay(orderId:string,userId:string) {

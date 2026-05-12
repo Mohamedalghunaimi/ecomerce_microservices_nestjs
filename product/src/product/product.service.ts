@@ -57,7 +57,7 @@ export class ProductService {
     public async findAll() : Promise<Product[]> {
 
 
-        const cached = await this.redisService.get<Product>('products');
+        const cached = await this.redisService.get<Product[]>('products');
         if(cached) {
             return cached
         }

@@ -14,6 +14,7 @@ services:
       - user-service
       - product-service
       - cart-service
+      - order-service
     env_file:
       - ./api-getway/.env
     volumes:
