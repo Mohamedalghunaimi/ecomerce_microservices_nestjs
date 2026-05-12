@@ -24,9 +24,9 @@ export class RedisService implements OnModuleDestroy{
         await this.client.set(key,cached,"EX",3600);
     }
 
-    public async get<T>(key:string):Promise<T | null> {
+    public async get<T>(key:string):Promise<T[] | null> {
         const cached = await this.client.get(key) ;
-        return cached? JSON.parse(cached as string) as T :null
+        return cached? JSON.parse(cached ) as T[] :null
 
         
     }
@@ -42,7 +42,7 @@ export class RedisService implements OnModuleDestroy{
             return 
 
         }
-        const newArray = JSON.parse(cached as string) as T[] ;
+        const newArray = JSON.parse(cached) as T[] ;
         newArray.push(newItem)
 
         await this.set(key,JSON.stringify(newArray));
@@ -56,7 +56,7 @@ export class RedisService implements OnModuleDestroy{
         if(!cached) {
             return 
         }
-        let items = JSON.parse(cached as string)  ;
+        let items = JSON.parse(cached )  ;
         if (!Array.isArray(items)) return false;
 
         items = items.filter((ele:any)=> ele.id!==newItem.id) ;
@@ -74,7 +74,7 @@ export class RedisService implements OnModuleDestroy{
         if(!cached) {
             return 
         }
-        let items = JSON.parse(cached as string)  ;
+        let items = JSON.parse(cached)  ;
         if (!Array.isArray(items)) return false;
         items = items.map((ele:any) => {
             if(ele.id === newItem.id) {

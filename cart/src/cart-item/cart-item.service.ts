@@ -86,7 +86,10 @@ export class CartItemService {
       
   }
 
-  remove(id: string,userId:string) {
+  remove(
+    id: string,
+    userId:string
+  ) {
     return this.prisma.$transaction(async(prisma)=> {
     const existingCartItem = await prisma.cartItem.findFirst({
       where:{id,cart:{userId}},

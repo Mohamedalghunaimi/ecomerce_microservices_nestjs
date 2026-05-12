@@ -1,26 +1,34 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class OrderService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(
+    @Inject("ORDER_SERVICE") private readonly orderClient : ClientProxy
+  ) {}
+  create(
+    userId:string,
+    createOrderDto : CreateOrderDto
+  ) {
+    return  this.orderClient.send("create_order" ,{ userId ,...createOrderDto})
+
   }
 
-  findAll() {
-    return `This action returns all order`;
+  findAll(
+    userId:string
+  ) {
+
+    return this.orderClient.send("get_orders" ,{userId})
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
+  remove(
+    orderId:string,
+    userId:string
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  ) {
+    return this.orderClient.send("cancel_order", {orderId,userId})
   }
 }
