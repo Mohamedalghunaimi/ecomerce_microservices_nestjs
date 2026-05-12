@@ -13,7 +13,7 @@ import Stripe from 'stripe';
 @Injectable()
 export class StripeService {
 
-    private stripe : any ;
+    private stripe : InstanceType<typeof Stripe>; ;
 
 
     constructor(
@@ -24,7 +24,7 @@ export class StripeService {
         })
     }
 
-    public async createCheckoutSession(order:Order) {
+    public async createCheckoutSession(order:Order){
         
         
         const session = await this.stripe.checkout.sessions.create({
@@ -46,11 +46,11 @@ export class StripeService {
             cancel_url:`${process.env.DOMAIN}/cancel?orderId=${order.id}`
 
         })
-        return session.success_url
+        return session
         
 
     }
-    public async captureSession(sessionId:string) {
+    public async captureSession(sessionId:string)  {
         const session = await this.stripe.checkout.sessions.retrieve(sessionId);
         if(!session) {
             throw new RpcException({

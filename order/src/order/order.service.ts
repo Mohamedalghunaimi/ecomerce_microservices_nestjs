@@ -9,7 +9,7 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { CartItem, orderData } from 'utils/interfaces';
 import { shippingFee, tax } from 'utils/constants';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
@@ -199,12 +199,12 @@ export class OrderService {
       })
     }
     if(!existingOrder.stripeSession) {
-    await this.prisma.order.update({
-      where:{id:existingOrder.id},
-      data:{
-        paymentStatus:"FAILED",
-      }
-    });
+      await this.updateOrder({
+        orderId:existingOrder.id,
+        stripeSession:null,
+        newStatus:"FAILED"
+      })
+    
       throw new RpcException({
         status:403,
         message:"forbidden"
@@ -212,13 +212,13 @@ export class OrderService {
     }
     await this.stripe.captureSession(existingOrder.stripeSession as string)
 
-    const updatedOrder = await this.prisma.order.update({
-      where:{id:existingOrder.id},
-      data:{
-        paymentStatus:"PAID",
-        stripeSession:null
-      }
-    });
+
+
+    const updatedOrder = await this.updateOrder({
+      orderId:existingOrder.id,
+      stripeSession:null,
+      newStatus:"PAID"
+    })
     
     return updatedOrder
 
@@ -245,12 +245,11 @@ export class OrderService {
       })
     }
     if(!existingOrder.stripeSession) {
-    await this.prisma.order.update({
-      where:{id:existingOrder.id},
-      data:{
-        paymentStatus:"FAILED",
-      }
-    });
+      await this.updateOrder({
+        orderId:existingOrder.id,
+        stripeSession:null,
+        newStatus:"FAILED"
+      })
       throw new RpcException({
         status:403,
         message:"forbidden"
@@ -258,18 +257,34 @@ export class OrderService {
     }
     await this.stripe.captureSession(existingOrder.stripeSession as string)
 
-    const updatedOrder = await this.prisma.order.update({
-      where:{id:existingOrder.id},
-      data:{
-        paymentStatus:"FAILED",
-        stripeSession:null
+    const updatedOrder = await this.updateOrder(
+      {
+        orderId:existingOrder.id,
+        stripeSession:null,
+        newStatus:"FAILED"
       }
-    });
-    
+    )
     return updatedOrder
 
   
 
+  }
+
+
+  private async updateOrder(
+    {orderId,stripeSession,newStatus} : {orderId:string,stripeSession:string | null , newStatus :PaymentStatus}
+  ) {
+
+    const updatedOrder = await this.prisma.order.update({
+      where:{id:orderId},
+      data:{
+        paymentStatus:newStatus,
+        stripeSession
+      }
+    });
+
+    return updatedOrder
+    
   }
 
 
