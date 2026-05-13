@@ -10,13 +10,15 @@ export class CloudinaryService {
     public async uploadImage(path:string,productId:string) {
         try {
             const result = await cloudinary.uploader.upload(path,{folder:`productsImges-${productId}`})
-            await fs.unlink(path);
 
             return result
         } catch (error) {
             console.error(error)
             throw new InternalServerErrorException('something went wrong in the server')
             
+        } finally {
+            await fs.unlink(path);
+
         }
 
     }

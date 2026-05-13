@@ -56,7 +56,7 @@ export class RedisService implements OnModuleDestroy{
         if(!cached) {
             return 
         }
-        let items = JSON.parse(cached )  ;
+        let items = JSON.parse(cached)  ;
         if (!Array.isArray(items)) return false;
 
         items = items.filter((ele:any)=> ele.id!==newItem.id) ;

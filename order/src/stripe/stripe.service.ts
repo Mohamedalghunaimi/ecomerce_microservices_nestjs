@@ -13,11 +13,11 @@ import Stripe from 'stripe';
 @Injectable()
 export class StripeService {
 
-    private stripe : InstanceType<typeof Stripe>; ;
+    private stripe : InstanceType<typeof Stripe>; 
 
 
     constructor(
-        config:ConfigService
+        private readonly config:ConfigService
     ) {
         this.stripe = new Stripe(config.get<string>('STRIPE_SECRET_KEY') as string,{
             apiVersion:"2026-04-22.dahlia"
@@ -26,7 +26,7 @@ export class StripeService {
 
     public async createCheckoutSession(order:Order){
         
-        
+        const domain = this.config.get<string>("DOMAIN")
         const session = await this.stripe.checkout.sessions.create({
             mode:"payment",
             payment_method_types:['card'],
@@ -42,8 +42,8 @@ export class StripeService {
                     
                 }
             ],
-            success_url:`${process.env.DOMAIN}/success?orderId=${order.id}`,
-            cancel_url:`${process.env.DOMAIN}/cancel?orderId=${order.id}`
+            success_url:`${domain}/success?orderId=${order.id}`,
+            cancel_url:`${domain}/cancel?orderId=${order.id}`
 
         })
         return session
